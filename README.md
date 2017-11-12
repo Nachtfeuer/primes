@@ -1,6 +1,18 @@
 # primes
 Basically a sandbox for playing/testing with/of some techniques. Using cmake, catch2, openmp and .... some more
 
+## Quick start
+
+```
+git clone https://github.com/Nachtfeuer/primes.git
+cd primes
+mkdir build
+cd build
+cmake ..
+make
+./primes
+```
+
 ## Catch2
 
 It's one reason for that repository to test the installation and usage of
