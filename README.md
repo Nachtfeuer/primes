@@ -30,4 +30,13 @@ and synchronization in very easy way. At least for the primes problem it hides a
 those thread logic you usually would have to do. Also via cmake it's easy to integrate
 with just a small amount of cmake code.
 
+## Boost Fibers
 
+Fibers are non preemptive threads means that the fiber function itself decides when
+it gives control to other fibers (yield). The prime algorithm based on fibers runs
+single threaded which also means that you don't need synchronization. The
+managing overhead makes - here - fibers slightly slower than just running the loop
+without it. The main focus here was just to have a simple code example on how to use
+fibers which is - basically - not difficult. In an reactive environment like processing
+requests in a server the non blocking none synchronized idea behind fibers might
+give you a complete other picture.

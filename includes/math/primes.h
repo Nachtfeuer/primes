@@ -26,7 +26,10 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+// see createPrimesOMP
 #include <omp.h>
+//
+#include <boost/fiber/all.hpp>
 
 namespace math {
 
@@ -94,6 +97,52 @@ Primes<T> createPrimesOMP(const T fromValue, const T toValue, const T chunks=2) 
                 primes.push_back(current);
             }
         }
+    }
+
+    // unavoidable since parallelism indicates unordered results
+    std::sort(primes.begin(), primes.end());
+    return primes;
+}
+
+// here we don't use a non preemptive thread that's why we also don't need synchronization
+// but for the mathmatically calculation the fiber is then overhead. However
+// most interesting focus is mainly the use of it (simple version).
+template <typename T>
+Primes<T> createPrimesFiber(const T fromValue, const T toValue, const T chunks=2) {
+    Primes<T> primes;
+
+    if (fromValue >= 2) {
+        primes.push_back(2);
+    }
+
+    // using chunks of computation avoiding that each call
+    // of isPrime is parallelized
+    std::vector<std::unique_ptr<boost::fibers::fiber>> tasks;
+    const T chunkSize = (toValue - fromValue) / chunks;
+
+    const auto fiberFunction = [fromValue, toValue, chunks, chunkSize, &primes](const T fiberChunk){
+        T current = fromValue + fiberChunk * chunkSize;
+        const T last = (fiberChunk+1 == chunks)? toValue: current + chunkSize;
+
+        if (current % 2 == 0) {
+            ++current;
+        }
+
+        for (; current <= last; current += 2) {
+            if (isPrime(current)) {
+                primes.push_back(current);
+                // give time slice (control) to other fibers
+                boost::this_fiber::yield();
+            }
+        }
+    };
+
+    for (T chunk = 0; chunk < chunks; ++chunk) {
+        tasks.push_back(std::make_unique<boost::fibers::fiber>(fiberFunction, chunk));
+    }
+
+    for (auto& task: tasks) {
+        task->join();
     }
 
     // unavoidable since parallelism indicates unordered results

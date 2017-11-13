@@ -31,5 +31,9 @@ TEST_CASE("Testing creation of primes", "[createPrimes") {
     SECTION("Testing parallelization with OMP") {
         REQUIRE(math::createPrimesOMP(2, maxNumber, 4) == expected);
     }
+
+    SECTION("Testing parallelization with fibers") {
+        REQUIRE(math::createPrimesFiber(2, maxNumber, 4) == expected);
+    }
 }
 
